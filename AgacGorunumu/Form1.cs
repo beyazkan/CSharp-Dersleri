@@ -17,5 +17,16 @@ namespace AgacGorunumu
             InitializeComponent();
             treeView1.Nodes.Add("2018");
         }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            List<TreeNode> listofDate = new List<TreeNode>();
+
+            listofDate.Add(new TreeNode("2017"));
+            listofDate.Add(new TreeNode("2016"));
+
+
+            treeView1.Nodes.AddRange(listofDate.ToArray());
+        }
     }
 }

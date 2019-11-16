@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AylikTakvim", "AylikTakvim\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgacGorunumu", "AgacGorunumu\AgacGorunumu.csproj", "{B9709891-A2FD-43A7-861B-8827C0AC4AFE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLite Form App", "SQLite Form App\SQLite Form App.csproj", "{1D9EED92-013F-4077-B18E-3AB07582C4A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{B9709891-A2FD-43A7-861B-8827C0AC4AFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9709891-A2FD-43A7-861B-8827C0AC4AFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9709891-A2FD-43A7-861B-8827C0AC4AFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D9EED92-013F-4077-B18E-3AB07582C4A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D9EED92-013F-4077-B18E-3AB07582C4A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D9EED92-013F-4077-B18E-3AB07582C4A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D9EED92-013F-4077-B18E-3AB07582C4A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

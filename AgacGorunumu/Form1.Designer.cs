@@ -59,6 +59,7 @@
             this.Controls.Add(this.treeView1);
             this.Name = "Form1";
             this.Text = "Agaç Görünümü";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
 
         }
