@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B9709891-A2FD-43A7-861B-8827C0AC4AFE}</ProjectGuid>
+    <ProjectGuid>{D5CADFB8-8C67-496A-BD1A-7C6C66141E75}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>AgacGorunumu</RootNamespace>
     <AssemblyName>AgacGorunumu</AssemblyName>

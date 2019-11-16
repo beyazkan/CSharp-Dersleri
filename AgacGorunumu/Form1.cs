@@ -15,18 +15,19 @@ namespace AgacGorunumu
         public Form1()
         {
             InitializeComponent();
-            treeView1.Nodes.Add("2018");
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            List<TreeNode> listofDate = new List<TreeNode>();
+            List<TreeNode> list_dugum = new List<TreeNode>();
+            
+            list_dugum.Add(new TreeNode("Selam"));
+            list_dugum.Add(new TreeNode("Merhaba"));
+            list_dugum.Add(new TreeNode("Naber"));
 
-            listofDate.Add(new TreeNode("2017"));
-            listofDate.Add(new TreeNode("2016"));
+            TreeNode dugum = new TreeNode("Deneme", list_dugum.ToArray());
 
-
-            treeView1.Nodes.AddRange(listofDate.ToArray());
+            treeView1.Nodes.AddRange(new TreeNode[] { dugum });
         }
     }
 }

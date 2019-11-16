@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SQLite;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,80 +14,222 @@ namespace AylikTakvim
 {
     public partial class Form1 : Form
     {
+
+        SQLiteConnection con;
+        SQLiteCommand cmd;
+        ToolTip tp = new ToolTip();
+
         public Form1()
         {
             InitializeComponent();
-            haftaSonları();
-
-            // Örnek için tarih sabitleme
-            monthCalendar1.SelectionRange = new SelectionRange(new DateTime(2019, 09, 20), new DateTime(2019, 09, 20));
-            
         }
 
-        private void BtnGoster_Click(object sender, EventArgs e)
+
+        private void Form1_Load(object sender, EventArgs e)
         {
-            string mesaj = "Seçili {0} gün bulunmaktadır.";
-            string gun = string.Format(mesaj, gunFarki() + 1);
-            MessageBox.Show(gun);
-            //MessageBox.Show(monthCalendar1.SelectionRange.ToString());
+            if (!File.Exists("MyDatabase.sqlite"))
+            {
+                SQLiteConnection.CreateFile("MyDatabase.sqlite");
+                string sql = @"CREATE TABLE Harici_Gunler(
+                               ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                               Aciklama TEXT DEFAULT 'Özel bir gün',
+                               Yil INTEGER NOT NULL,
+                               Tarih TEXT NOT NULL
+                                );";
+
+                con = new SQLiteConnection("Data Source=MyDatabase.sqlite; Version=3;");
+                con.Open();
+                cmd = new SQLiteCommand(sql, con);
+                cmd.ExecuteNonQuery();
+                //cmd.CommandText = "INSERT INTO Harici_Gunler(Yil, Tarih) values(0000, '0000')";
+                //cmd.ExecuteNonQuery();
+                con.Close();
+            }
+            else
+            {
+                con = new SQLiteConnection("Data Source=MyDatabase.sqlite; Version=3;");
+            }
+            TreeViewGuncelle();
+            Gunleri_Isaretle();
         }
 
-        private void BtnListele_Click(object sender, EventArgs e)
+        private int gunHesapla()
         {
-            gunleriListele();
-        }
-
-        private int gunFarki()
-        {
-            // İki Tarih arasında ki gün sayı farkını buluyoruz.
             DateTime ilkGun = monthCalendar1.SelectionStart;
             DateTime sonGun = monthCalendar1.SelectionEnd;
-            TimeSpan gunSayisi = sonGun - ilkGun;
 
-            return gunSayisi.Days;
+            TimeSpan sonuc = sonGun.Subtract(ilkGun);
+            return Convert.ToInt32(sonuc.Days);
         }
 
-        private void gunleriListele()
+        private List<DateTime> tarihListele(int gunSayisi)
         {
-            // Gün Listesini Oluşturma
-            List<DateTime> gunler = new List<DateTime>();
-
-            // Seçili ilk gun belirleniyor.
+            List<DateTime> tarihListesi = new List<DateTime>();
             DateTime gun = monthCalendar1.SelectionStart;
+            tarihListesi.Add(gun);
 
-            // İlk günü dahil ederek arada ki günleri listeye ekliyoruz.
-            gunler.Add(gun);
-            for (int i = 0; i < gunFarki(); i++)
+            for (int i = 0; i < gunSayisi; i++)
             {
+                tarihListesi.Add(gun.AddDays(1));
                 gun = gun.AddDays(1);
-                gunler.Add(gun);
             }
 
-            // Tarih Listesini Formatlanmış bir şekilde String Listesine Dönüştürüyoruz.
-            List<String> str_gunler = new List<string>();
-            foreach (var item in gunler)
-            {
-                str_gunler.Add(item.ToString("d"));
-            }
-
-            // Str_Gunler listesini tek bir string ifadede topluyoruz.
-            String day_list = string.Join("\n", str_gunler.ToArray());
-            MessageBox.Show(day_list);
+            return tarihListesi;
         }
 
-        private void haftaSonları()
+        private List<DateTime> Tarih_Listesi()
         {
-            monthCalendar1.BoldedDates = new DateTime[] {
-                new DateTime(2019, 09, 01),
-                new DateTime(2019, 09, 07),
-                new DateTime(2019, 09, 08),
-                new DateTime(2019, 09, 14),
-                new DateTime(2019, 09, 15),
-                new DateTime(2019, 09, 21),
-                new DateTime(2019, 09, 22),
-                new DateTime(2019, 09, 28),
-                new DateTime(2019, 09, 29),
-            };
+            List<DateTime> gunler = tarihListele(gunHesapla());
+
+            return gunler;
         }
+
+        private List<Harici_Gunler> get_all()
+        {
+            List<Harici_Gunler> dbList = new List<Harici_Gunler>();
+
+            cmd = new SQLiteCommand();
+            con.Open();
+            cmd.Connection = con;
+            cmd.CommandText = "Select * From Harici_Gunler";
+            cmd.ExecuteNonQuery();
+            SQLiteDataReader dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                dbList.Add(new Harici_Gunler { id = Convert.ToInt32(dr["id"]), Yil = Convert.ToInt32(dr["Yil"]), Tarih = dr["Tarih"].ToString(), Aciklama = dr["Aciklama"].ToString()});
+            }
+
+            con.Close();
+            return dbList;
+        }
+
+        private bool Gun_Kontrol(string param)
+        {
+            bool deger = false;
+            if(get_all().Count == 0)
+            {
+                deger = true;
+            }
+            else
+            {
+                foreach (var item in get_all())
+                {
+                    if (item.Tarih == param)
+                    {
+                        deger = false;
+                        break;
+                    }
+                    else
+                    {
+                        deger = true;
+                    }
+
+                }
+            }
+
+            return deger;
+        }
+
+        private void btnKayit_Click(object sender, EventArgs e)
+        {
+            bool kontrol = false;
+
+            foreach (var item in Tarih_Listesi())
+            {
+                if (!Gun_Kontrol(item.ToString("d"))) {
+
+                    MessageBox.Show("Eklemeye çalıştığınız tarih veya tarih aralığı zaten kayıtlıdır.");
+                    kontrol = true;
+                    break;
+                }
+                cmd = new SQLiteCommand();
+                con.Open();
+                cmd.Connection = con;
+                if (string.IsNullOrWhiteSpace(txtAciklama.Text))
+                {
+                    cmd.CommandText = $"INSERT INTO Harici_Gunler(Yil, Tarih) values('{item.Year.ToString()}', '{item.ToString("d")}')";
+                }
+                else
+                {
+                    cmd.CommandText = $"INSERT INTO Harici_Gunler(Yil, Tarih, Aciklama) values('{item.Year.ToString()}', '{item.ToString("d")}', '{txtAciklama.Text.ToString()}')";
+                }
+                cmd.ExecuteNonQuery();
+                con.Close();
+            }
+
+            if(!kontrol)
+            MessageBox.Show("Tarihler veritabanına başarıyla kayıt edilmiştir.");
+            txtAciklama.Text = "";
+
+            TreeViewGuncelle();
+        }
+
+        private void TreeViewGuncelle()
+        {
+            treeView1.Nodes.Clear();
+            List<Harici_Gunler> harici_gunler = get_all();
+            List<int> yil = yil_listele();
+            List<TreeNode> parent = new List<TreeNode>();
+
+            foreach (var item in yil)
+            {
+                List<TreeNode> leaves = new List<TreeNode>();
+                foreach (var gunler in harici_gunler)
+                {
+                    if(gunler.Yil == item)
+                    {
+                        TreeNode addNode = new TreeNode(gunler.Tarih.ToString());
+                        addNode.ToolTipText = gunler.Aciklama.ToString();
+                        addNode.Name = gunler.id.ToString();
+                        leaves.Add(addNode);
+                    }
+                }
+                parent.Add(new TreeNode(item.ToString(), leaves.ToArray()));
+                leaves.Clear();
+            }
+
+            treeView1.Nodes.AddRange(parent.ToArray());
+
+        }
+
+        private List<int> yil_listele()
+        {
+            List<int> yil = new List<int>();
+
+            cmd = new SQLiteCommand();
+            con.Open();
+            cmd.Connection = con;
+            cmd.CommandText = "SELECT Yil from Harici_Gunler GROUP BY Yil ORDER BY Yil DESC";
+            cmd.ExecuteNonQuery();
+            SQLiteDataReader dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                yil.Add(Convert.ToInt32(dr["Yil"]));
+            }
+
+            con.Close();
+
+            return yil;
+        }
+
+        private void Gunleri_Isaretle()
+        {
+            List<DateTime> tarihler = new List<DateTime>();
+            var a = get_all();
+            for (int i = 0; i < a.Count; i++)
+            {
+                tarihler.Add(DateTime.Parse(a[i].Tarih));
+            }
+            monthCalendar1.BoldedDates = tarihler.ToArray();
+            
+        }
+    }
+
+    class Harici_Gunler
+    {
+        public int id { get; set; }
+        public int Yil { get; set; }
+        public String Tarih { get; set; }
+        public String Aciklama { get; set; }
     }
 }
